@@ -6,7 +6,10 @@ import {
     handSortedByPower,
     highCardPoints,
     loserCount,
-    quickTricks
+    quickTricks,
+    deal,
+    SEATS,
+    HOLDINGS
 } from "./bridge";
 import {v4 as uuidv4} from 'uuid';
 
@@ -115,5 +118,15 @@ describe ('bridge tests', () => {
         console.log(quickTricks(sampleFullHand()))
         expect(quickTricks(sampleFullHand())).toBeGreaterThan(0)
         console.log(displayHand(sampleFullHand()))
+    })
+    it ('deal', () => {
+        const firstHand = deal()
+        var gorenPoints = 0
+        for (var seat of [SEATS.EAST, SEATS.SOUTH, SEATS.WEST, SEATS.NORTH]) {
+            var handLet = handSortedByPower(firstHand[seat][HOLDINGS.hands])
+            var hcp = highCardPoints(firstHand[seat][HOLDINGS.hands])
+            gorenPoints += highCardPoints(firstHand[seat][HOLDINGS.hands])
+        }
+        expect(gorenPoints).toEqual(40)
     })
 })

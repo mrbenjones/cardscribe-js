@@ -1,5 +1,7 @@
-import {Card, CardSuitListMap, CardSuitMap, toCardSuitListMap, toCardSuitMap} from './card'
+import {v4 as uuidv4} from 'uuid';
+import {Card, CardSuitListMap, CardSuitMap, GameHoldings, toCardSuitListMap, toCardSuitMap} from './card'
 import {shuffle} from './shuffle'
+import {deck, PINOCHLERANKS, PINOCHLESUITS} from "./pinochleDeck";
 export enum BRIDGESUITS {
     HEART = 'H',
     CLUB = 'C',
@@ -22,6 +24,14 @@ export enum BRIDGERANKS {
     THREE = '3',
     TWO = '2'
 }
+
+export enum SEATS {
+    NORTH = 'North',
+    EAST = 'East',
+    SOUTH = 'South',
+    WEST = 'West'
+}
+
 
 const trickStrength: Map<BRIDGERANKS, number> = new Map(
     [[BRIDGERANKS.ACE, 13],
@@ -49,7 +59,7 @@ const gorenPoints: Map<BRIDGERANKS, number> = new Map(
 export function highCardPoints(hand: Card<BRIDGESUITS, BRIDGERANKS>[]): number {
     return hand.reduce(
         (s, t) =>
-            s + gorenPoints.get(t.rank)
+            s + (gorenPoints.get(t.rank) || 0)
         ,0
     )
 }
@@ -65,6 +75,17 @@ export function handSortedByPower(hand: Card<BRIDGESUITS, BRIDGERANKS>[]):CardSu
     return cardListMap
 }
 
+function* bridgeDeckGenerator() {
+        for (const suit in BRIDGESUITS) {
+            for (const rank in BRIDGERANKS) {
+                yield {
+                    id: uuidv4(),
+                    rank: BRIDGERANKS[rank],
+                    suit: BRIDGESUITS[suit]
+                }
+            }
+        }
+}
 export function loserCount(hand: Card<BRIDGESUITS, BRIDGERANKS>[]): number {
     const powerHand = handSortedByPower(hand)
     var loserCount:number = 0
@@ -76,6 +97,37 @@ export function loserCount(hand: Card<BRIDGESUITS, BRIDGERANKS>[]): number {
     return loserCount
 }
 
+export enum HOLDINGS {
+    hands
+}
+const BRIDGESEATS = [SEATS.SOUTH, SEATS.WEST, SEATS.NORTH, SEATS.EAST]
+function generateHoldings():GameHoldings<BRIDGESUITS, BRIDGERANKS, SEATS, HOLDINGS> {
+    const holdings:GameHoldings<BRIDGESUITS, BRIDGERANKS, SEATS, HOLDINGS> = new Map<SEATS, Map<HOLDINGS, Card<BRIDGESUITS, BRIDGERANKS>[]>>()
+    for (const seat of BRIDGESEATS) {
+        const seatMap = new Map<HOLDINGS, Card<BRIDGESUITS, BRIDGERANKS>> ()
+        seatMap[HOLDINGS.hands] = []
+        holdings[seat] = seatMap
+    }
+    return holdings
+}
+
+export function deal(dealerSeat = 0):GameHoldings<BRIDGESUITS, BRIDGERANKS, SEATS, HOLDINGS> {
+    const deck:Card<BRIDGESUITS, BRIDGERANKS>[] = shuffle([...bridgeDeckGenerator()])
+    const holdings:GameHoldings<BRIDGESUITS, BRIDGERANKS, SEATS, HOLDINGS> = generateHoldings()
+        for (var i =0; i < 13; i++) {
+            for (var seatN =0; seatN < 4; seatN++) {
+                holdings[BRIDGESEATS[(seatN + dealerSeat) % 4]][HOLDINGS.hands]
+                    .push(deck[i + seatN * 13])
+            }
+        }
+        return holdings
+}
+
+
+/**
+ * Internal function to count quick tricks in a given suit in a holding.
+ * @param suit
+ */
 function quickTricksInSuit(suit: Set<Card<BRIDGESUITS, BRIDGERANKS>>):number {
     const suitRanking = new Set<BRIDGERANKS>()
     suit.forEach(
@@ -117,12 +169,18 @@ function suitString(suit: Card<BRIDGESUITS, BRIDGERANKS>[]) {
     }
 }
 
+/**
+ * Show ranks of suits or a dash for a void suit down the line.
+ * @param hand : the cards of the hand
+ */
 export function displayHand(hand: Card<BRIDGESUITS, BRIDGERANKS>[]): string {
     const suitedHand = handSortedByPower(hand)
     var description = ''
     for (const suit of [BRIDGESUITS.SPADE, BRIDGESUITS.HEART, BRIDGESUITS.DIAMOND, BRIDGESUITS.CLUB]) {
-        description += suitString(suitedHand.get(suit) || [])
+        description += suitString(suitedHand.get(suit) || []) + '|'
     }
     return description
 }
+
+
 
