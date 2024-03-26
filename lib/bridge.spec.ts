@@ -112,7 +112,8 @@ describe ('bridge tests', () => {
         expect(sortedHand.get(BRIDGESUITS.CLUB)[1].rank).toEqual(BRIDGERANKS.KING)
     })
     it ('loser count', () => {
-        expect(loserCount(sampleFullHand())).toEqual(5)
+        const currentHand:Card<BRIDGESUITS, BRIDGERANKS>[] = sampleFullHand()
+        expect(loserCount(currentHand)).toEqual(5)
     })
     it ('quick tricks', () => {
         console.log(quickTricks(sampleFullHand()))
@@ -130,3 +131,85 @@ describe ('bridge tests', () => {
         expect(gorenPoints).toEqual(40)
     })
 })
+
+describe ('bridge tests', () => {
+    // ... existing tests ...
+
+    it ('quick tricks calculation for empty hand', () => {
+        const emptyHand = [];
+        expect(quickTricks(emptyHand)).toEqual(0);
+    });
+
+    it ('quick tricks calculation for hand with no quick tricks', () => {
+        const handWithoutQuickTricks = [
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.TWO,
+                suit: BRIDGESUITS.CLUB
+            },
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.THREE,
+                suit: BRIDGESUITS.HEART
+            },
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.FOUR,
+                suit: BRIDGESUITS.DIAMOND
+            },
+        ];
+        expect(quickTricks(handWithoutQuickTricks)).toEqual(0);
+    });
+
+    it ('quick tricks calculation for hand with quick tricks', () => {
+        const handWithQuickTricks = [
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.ACE,
+                suit: BRIDGESUITS.CLUB
+            },
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.KING,
+                suit: BRIDGESUITS.CLUB
+            },
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.QUEEN,
+                suit: BRIDGESUITS.HEART
+            },
+        ];
+        expect(quickTricks(handWithQuickTricks)).toEqual(2);
+    });
+
+    it ('display hand for empty hand', () => {
+        const emptyHand = [];
+        expect(displayHand(emptyHand)).toEqual('...');
+    });
+
+    it ('display hand for full hand', () => {
+        const fullHand = [
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.ACE,
+                suit: BRIDGESUITS.CLUB
+            },
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.KING,
+                suit: BRIDGESUITS.CLUB
+            },
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.QUEEN,
+                suit: BRIDGESUITS.HEART
+            },
+            {
+                id: uuidv4(),
+                rank: BRIDGERANKS.JACK,
+                suit: BRIDGESUITS.SPADE
+            },
+        ];
+        expect(displayHand(fullHand)).toEqual('J.Q..AK');
+    });
+});
