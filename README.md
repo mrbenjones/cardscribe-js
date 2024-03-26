@@ -44,3 +44,6 @@ function deck() {
     return [c for c in pinochleDeckGenerator()]
 }
 ```
+
+# AUTHOR
+Benjamin Jones (github: mrbenjones)
